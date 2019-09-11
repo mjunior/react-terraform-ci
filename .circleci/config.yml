@@ -1,0 +1,54 @@
+version: 2
+jobs:
+  tests:
+    docker:
+      - image: circleci/node:8.9.4
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm run test
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+  build:
+    docker:
+      - image: circleci/node:8.9.4
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run: pwd
+      - run: npm run build
+      - save_cache:
+          key: build-cache
+          paths:
+            - build
+      - run: ls -la
+  deploy:
+    docker:
+      - image: 'circleci/python:2.7'
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - restore_cache:
+          key: build-cache
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Deploy to S3
+          command: aws s3 sync build s3://mjunior.com.br/ --delete
+
+workflows:
+  version: 2
+  tests_and_deploy:
+    jobs:
+      - tests
+      - build:
+          requires:
+            - tests
+      - deploy:
+          requires:
+            - build
