@@ -8,7 +8,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          vrau.com.br - from terraform2
+          novo texto from ci2
         </p>
         <a
           className="App-link"
